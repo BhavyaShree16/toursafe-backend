@@ -57,13 +57,13 @@ app.get('/api/debug/env', (_, res) => {
   })
 })
 
-const PORT = process.env.PORT || 4000
+const PORT = process.env.PORT
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected')
-    httpServer.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`)
-    })
+    httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`)
+})
   })
   .catch(err => console.error('DB connection failed:', err))

@@ -17,13 +17,15 @@ const httpServer = createServer(app)
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
+  'https://toursafehotel.vercel.app',
+  'https://toursafepolice.vercel.app',
   'https://toursafe-hotel.vercel.app',
   'https://toursafe-police.vercel.app',
 ]
 
 export const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: '*',
     methods: ['GET', 'POST']
   }
 })
@@ -35,7 +37,18 @@ io.on('connection', (socket) => {
   })
 })
 
-app.use(cors({ origin: allowedOrigins }))
+// Fix preflight
+app.options('*', cors())
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    return callback(null, true) // allow all for now
+  },
+  credentials: true
+}))
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -63,7 +76,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected')
     httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`)
-})
+      console.log(`Server running on port ${PORT}`)
+    })
   })
   .catch(err => console.error('DB connection failed:', err))

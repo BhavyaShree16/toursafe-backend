@@ -1,71 +1,27 @@
 import express from 'express'
-import mongoose from 'mongoose'
-import dotenv from 'dotenv'
-import { createServer } from 'http'
-import { Server } from 'socket.io'
-import authRoutes from './src/routes/auth.js'
-import touristRoutes from './src/routes/tourists.js'
-import policeRoutes from './src/routes/police.js'
-import whatsappRoutes from './src/routes/whatsapp.js'
+import policeAuth from '../middleware/policeAuth.js'
+import { policeRegister, policeLogin } from '../controllers/policeAuthController.js'
+import { getAllTourists, getAllStats, raiseAlert, resolveAlert, getAlerts } from '../controllers/policeController.js'
+import Tourist from '../models/Tourist.js'
 
-dotenv.config()
+const router = express.Router()
 
-const app = express()
-const httpServer = createServer(app)
+router.post('/register', policeRegister)
+router.post('/login', policeLogin)
 
-// CORS middleware — must be first, before everything
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  res.setHeader('Access-Control-Allow-Credentials', 'false')
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end()
-  }
-  next()
-})
-
-app.use(express.json())
-
-export const io = new Server(httpServer, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+router.get('/tourists', policeAuth, getAllTourists)
+router.get('/stats', policeAuth, getAllStats)
+router.get('/alerts', policeAuth, getAlerts)
+router.patch('/tourists/:id/alert', policeAuth, raiseAlert)
+router.patch('/tourists/:id/resolve', policeAuth, resolveAlert)
+router.get('/tourists/:id/status', async (req, res) => {
+  try {
+    const tourist = await Tourist.findById(req.params.id)
+    if (!tourist) return res.status(404).json({ message: 'Not found' })
+    res.json({ status: tourist.status, touristId: tourist.touristId })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
   }
 })
 
-io.on('connection', (socket) => {
-  console.log('Dashboard connected:', socket.id)
-  socket.on('disconnect', () => {
-    console.log('Dashboard disconnected:', socket.id)
-  })
-})
-
-app.use('/api/auth', authRoutes)
-app.use('/api/tourists', touristRoutes)
-app.use('/api/police', policeRoutes)
-app.use('/api/whatsapp', whatsappRoutes)
-
-app.get('/api/health', (_, res) => res.json({ status: 'ok' }))
-
-app.get('/api/debug/env', (_, res) => {
-  res.json({
-    mongo: !!process.env.MONGO_URI,
-    jwt: !!process.env.JWT_SECRET,
-    twilio_sid: !!process.env.TWILIO_ACCOUNT_SID,
-    twilio_token: !!process.env.TWILIO_AUTH_TOKEN,
-    twilio_from: process.env.TWILIO_WHATSAPP_FROM,
-    port: process.env.PORT,
-  })
-})
-
-const PORT = process.env.PORT || 4000
-
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('MongoDB connected')
-    httpServer.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`)
-    })
-  })
-  .catch(err => console.error('DB connection failed:', err))
+export default router

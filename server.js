@@ -14,20 +14,19 @@ dotenv.config()
 const app = express()
 const httpServer = createServer(app)
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'https://toursafehotel.vercel.app',
-  'https://toursafepolice.vercel.app',
-  'https://toursafe-hotel.vercel.app',
-  'https://toursafe-police.vercel.app',
-]
+// CORS — allow everything
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  if (req.method === 'OPTIONS') return res.status(200).end()
+  next()
+})
+
+app.use(express.json())
 
 export const io = new Server(httpServer, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+  cors: { origin: '*', methods: ['GET', 'POST'] }
 })
 
 io.on('connection', (socket) => {
@@ -36,21 +35,6 @@ io.on('connection', (socket) => {
     console.log('Dashboard disconnected:', socket.id)
   })
 })
-
-// Fix preflight
-app.options('*', cors())
-
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true)
-    if (allowedOrigins.includes(origin)) return callback(null, true)
-    return callback(null, true) // allow all for now
-  },
-  credentials: true
-}))
-
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/tourists', touristRoutes)
@@ -70,12 +54,12 @@ app.get('/api/debug/env', (_, res) => {
   })
 })
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 4000
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected')
-    httpServer.listen(PORT, '0.0.0.0', () => {
+    httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
   })

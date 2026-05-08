@@ -17,19 +17,15 @@ export const registerTourist = async (req, res) => {
 
     // 1. Send immediate welcome WhatsApp
     
-    const welcomeMessage = `🌿 Welcome to ${tourist.district}, ${tourist.name}!
+    const welcomeMessage = `🌿Welcome to ${tourist.district}, ${tourist.name}!
 
 Your Tourist ID: ${tourist.touristId}
-Destination: ${tourist.place}
 Check-in: ${tourist.checkIn}
 Check-out: ${tourist.checkOut}
 
-Save this number for emergencies.
-Reply SOS if you need immediate help.
-Reply INFO for your trip details.
-Reply HELP for all commands.
+Reply SOS anytime if you need emergency help.
 
-Stay safe and enjoy your trip! 🏔️`
+Enjoy your trip and stay safe!🏔️`
 
     sendWhatsApp(tourist.phone, welcomeMessage).catch(console.error)
 

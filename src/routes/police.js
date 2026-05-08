@@ -1,9 +1,8 @@
 import express from 'express'
 import policeAuth from '../middleware/policeAuth.js'
 import { policeRegister, policeLogin } from '../controllers/policeAuthController.js'
-import { getAllTourists, getAllStats, raiseAlert, resolveAlert, getAlerts } from '../controllers/policeController.js'
 import Tourist from '../models/Tourist.js'
-import { getAllTourists, getAllStats, raiseAlert, resolveAlert, getAlerts } from '../controllers/policeController.js'
+import { getAllTourists,getAllStats,raiseAlert,resolveAlert,getAlerts,generateEFIR} from '../controllers/policeController.js'
 
 const router = express.Router()
 

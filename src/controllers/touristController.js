@@ -15,24 +15,54 @@ export const registerTourist = async (req, res) => {
       touristId,
     })
 
-    // Send WhatsApp welcome message
-    const message = `🌿 *Welcome to Northeast India!*
+    // 1. Send immediate welcome WhatsApp
+    const welcomeMessage = `🌿 Welcome to ${tourist.place}, ${tourist.name}!
 
-Hello ${tourist.name}, you're registered as a tourist.
-
-*Your Tourist ID:* ${tourist.touristId}
-*Destinations:* ${tourist.place}
-*Check-in:* ${tourist.checkIn}
-*Check-out:* ${tourist.checkOut}
+Your Tourist ID: ${tourist.touristId}
+Destination: ${tourist.place}
+Check-in: ${tourist.checkIn}
+Check-out: ${tourist.checkOut}
 
 Save this number for emergencies.
-Reply *SOS* if you need immediate help.
-Reply *INFO* for today's safety tips.
+Reply SOS if you need immediate help.
+Reply INFO for your trip details.
+Reply HELP for all commands.
 
 Stay safe and enjoy your trip! 🏔️`
 
-    // Fire and forget — don't block the response
-    sendWhatsApp(tourist.phone, message).catch(console.error)
+    sendWhatsApp(tourist.phone, welcomeMessage).catch(console.error)
+
+    // 2. Trigger n8n onboarding workflow (AI briefing)
+    const N8N_WEBHOOK = process.env.N8N_WEBHOOK_ONBOARDING
+    if (N8N_WEBHOOK) {
+      console.log('Triggering n8n onboarding webhook:', N8N_WEBHOOK)
+      fetch(N8N_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          touristId: tourist.touristId,
+          name: tourist.name,
+          phone: tourist.phone,
+          place: tourist.place,
+          checkIn: tourist.checkIn,
+          checkOut: tourist.checkOut,
+          purpose: tourist.purpose || 'leisure',
+          emergencyName: tourist.emergencyName,
+          emergencyPhone: tourist.emergencyPhone,
+          nationality: tourist.nationality,
+          idNumber: tourist.idNumber,
+          hotelName: req.hotel.name || 'Hotel',
+        })
+      })
+      .then(r => {
+        console.log('n8n webhook response status:', r.status)
+        return r.text()
+      })
+      .then(text => console.log('n8n response:', text))
+      .catch(err => console.error('n8n webhook error:', err.message))
+    } else {
+      console.log('N8N_WEBHOOK_ONBOARDING not set — skipping n8n')
+    }
 
     res.status(201).json(tourist)
   } catch (err) {

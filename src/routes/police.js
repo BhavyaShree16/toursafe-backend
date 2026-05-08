@@ -3,6 +3,7 @@ import policeAuth from '../middleware/policeAuth.js'
 import { policeRegister, policeLogin } from '../controllers/policeAuthController.js'
 import { getAllTourists, getAllStats, raiseAlert, resolveAlert, getAlerts } from '../controllers/policeController.js'
 import Tourist from '../models/Tourist.js'
+import { getAllTourists, getAllStats, raiseAlert, resolveAlert, getAlerts } from '../controllers/policeController.js'
 
 const router = express.Router()
 
@@ -25,40 +26,4 @@ router.get('/tourists/:id/status', async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 })
-export const generateEFIR = async (req, res) => {
-  try {
-    const tourist = await Tourist.findById(req.params.id)
-      .populate('hotelId', 'name city')
-    
-    if (!tourist) return res.status(404).json({ message: 'Tourist not found' })
-
-    const AI_URL = process.env.AI_SERVICE_URL
-    if (!AI_URL) return res.status(500).json({ message: 'AI service not configured' })
-
-    const response = await fetch(`${AI_URL}/agent/efir`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        touristId: tourist.touristId,
-        name: tourist.name,
-        nationality: tourist.nationality,
-        idNumber: tourist.idNumber,
-        phone: tourist.phone,
-        place: tourist.place,
-        district: tourist.district || tourist.place,
-        hotelName: tourist.hotelId?.name || 'Unknown Hotel',
-        emergencyName: tourist.emergencyName,
-        emergencyPhone: tourist.emergencyPhone,
-        checkIn: tourist.checkIn,
-        checkOut: tourist.checkOut,
-      })
-    })
-
-    const data = await response.json()
-    res.json({ efir: data.efir })
-  } catch (err) {
-    res.status(500).json({ message: err.message })
-  }
-}
-
 export default router

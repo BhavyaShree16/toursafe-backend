@@ -16,6 +16,7 @@ export const registerTourist = async (req, res) => {
     })
 
     // 1. Send immediate welcome WhatsApp
+    
     const welcomeMessage = `🌿 Welcome to ${tourist.place}, ${tourist.name}!
 
 Your Tourist ID: ${tourist.touristId}

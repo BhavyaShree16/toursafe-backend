@@ -1,0 +1,133 @@
+{
+  "name": "Tourist Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboarding",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        16
+      ],
+      "id": "9f3fc22b-9b4f-4819-8df0-a1e230d00d47",
+      "name": "Webhook",
+      "webhookId": "ebc5d601-5535-472f-ac19-16db15f70e38"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://toursafe-ai.onrender.com/agent/briefing",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=touristId",
+              "value": "=={{ $json.body.touristId }}"
+            },
+            {
+              "name": "name",
+              "value": "=={{ $json.body.name }}"
+            },
+            {
+              "name": "phone",
+              "value": "=={{ $json.body.phone }}"
+            },
+            {
+              "name": "place",
+              "value": "=={{ $json.body.place }}"
+            },
+            {
+              "name": "checkIn",
+              "value": "=={{ $json.body.checkIn }}"
+            },
+            {
+              "name": "checkOut",
+              "value": "=={{ $json.body.checkOut }}"
+            },
+            {
+              "name": "purpose",
+              "value": "=={{ $json.body.purpose || 'leisure' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        16,
+        16
+      ],
+      "id": "2fa83be0-8c41-4496-9e8c-996c57f5eb94",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://toursafe-backend.onrender.com/api/whatsapp/send",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "=={{ $('Webhook').item.json.body.phone }}"
+            },
+            {
+              "name": "message",
+              "value": "=={{ $json.briefing }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        16
+      ],
+      "id": "12a4c8b6-5038-44bc-9e82-9e39a3e223f0",
+      "name": "HTTP Request1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5af79bce-da4a-4cee-9d8b-1f62818f1f8e",
+  "meta": {
+    "instanceId": "d2f0996735192324995ac8e97b09a62eff35a2420edf44fc355e29d00e54997d"
+  },
+  "id": "8dTZjKt75tusTZVO",
+  "tags": []
+}

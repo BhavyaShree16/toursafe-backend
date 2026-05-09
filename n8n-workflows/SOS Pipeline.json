@@ -1,0 +1,74 @@
+{
+  "name": "SOS Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sos",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -128,
+        -16
+      ],
+      "id": "6d11ba48-446a-48cf-aef8-68980919e4a3",
+      "name": "Webhook",
+      "webhookId": "e8f42f24-d146-4703-a6a1-f8773bcf31e5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://toursafe-backend.onrender.com/api/whatsapp/send",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "=={{ $json.body.emergencyPhone }}"
+            },
+            {
+              "name": "message",
+              "value": "==🚨 URGENT ALERT: {{ $json.body.name }} has sent an SOS signal. Tourist ID: {{ $json.body.touristId }}. Last known destination: {{ $json.body.place }}, {{ $json.body.district }}. Hotel: {{ $json.body.hotelName }}. Police have been notified. Please stay available on this number."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "18f71661-89a3-4b7a-9bea-cc55fa5339bd",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6236713f-2884-4ecc-9756-7f596a85ef89",
+  "meta": {
+    "instanceId": "d2f0996735192324995ac8e97b09a62eff35a2420edf44fc355e29d00e54997d"
+  },
+  "id": "8oimcdnbBBWfZlXe",
+  "tags": []
+}
